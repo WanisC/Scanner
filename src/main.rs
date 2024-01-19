@@ -1,35 +1,55 @@
 mod scan_ipv4;
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[clap(author, version, about)]
-struct Opts {
-    #[clap(subcommand)]
+struct Cli {
+    #[command(subcommand)]
     command: Commands,
 }
 
-#[derive(Parser)]
+#[derive(Subcommand)]
 enum Commands {
+    // Port scanning
+    ScanPort {
+        #[clap(long_help = "Vector of bytes", required = true)]
+        octet1: u8,
+
+        #[clap(long_help = "Vector of bytes", required = true)]
+        octet2: u8,
+
+        #[clap(short = 'p', long_help = "Port to scan", required = true)] 
+        port: u16,       
+    },
+
+    // IPv4 scanning
     ScanIpv4 {
-        #[clap(long_help = "Vector of bytes")]
-        bytes: Vec<u8>,        
-    }
+        #[clap(long_help = "Vector of bytes", required = true)]
+        octet1: u8,
+
+        #[clap(long_help = "Vector of bytes", required = true)]
+        octet2: u8,
+    },
+
+    // IPv6 scanning (incoming)
+
+    // Full network scanning (incoming)
 }
 
 fn main() -> std::io::Result<()> {
-    let opts = Opts::parse();
+    let cli = Cli::parse();
 
-    match &opts.command {
-        Commands::ScanIpv4 { bytes } => {
-            // Check that the vector has exactly two elements
-            if bytes.len() != 2 {
-                println!("The vector must have exactly two elements");
-                return Ok(());
-            }
-            scan_ipv4::scan(bytes[0], bytes[1]);
-        }
+    match &cli.command {
+        Commands::ScanPort { octet1, octet2, port } => {
+            println!("Scanning with octet1={}, octet2={}, port={}", octet1, octet2, port);
+            scan_ipv4::scan_port(octet1.clone(), octet2.clone(), port.clone());
+        },
+
+        Commands::ScanIpv4 { octet1, octet2 } => {
+            println!("Scanning local network with octet1={}, octet2={}", octet1, octet2);
+            scan_ipv4::ipv4(octet1.clone(), octet2.clone());
+        },
     }
-
     Ok(())
 }

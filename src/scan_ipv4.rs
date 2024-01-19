@@ -1,54 +1,84 @@
 // Scan for IPv4 addresses on the network
 
-use std::net::Ipv4Addr;
-use std::process::Command;
-use std::str;
+use std::net::{IpAddr, Ipv4Addr, TcpStream};
+//use pnet::packet::ip;
+//use std::process::Command;
 use rayon::prelude::*;
+use ping::ping;
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use dns_lookup::lookup_addr;
 
-pub fn scan(nb1: u8, nb2: u8) {
-    println!("Scanning local network {}.{}...", nb1, nb2);
+pub fn scan_port(nb1: u8, nb2: u8, port: u16) {
 
-    // Create a vector of all possible IP addresses for the last two octets
-    let ips: Vec<Ipv4Addr> = (0..255)
-        .flat_map(|nb3| (0..255).map(move |nb4| Ipv4Addr::new(nb1, nb2, nb3, nb4)))
-        .collect();
+    let mutex = Arc::new(Mutex::new(Vec::new()));
 
-    ips.par_iter()
-        .for_each(|ip| {
-            let output = Command::new("ping")
-                .arg("-c 1")
-                .arg("-a")
-                .arg(ip.to_string())
-                .output();
-            match output {
-                Ok(output) => {
-                    if output.status.success() {
-                        let str_output = str::from_utf8(&output.stdout).expect("Invalid UTF-8");
-
-                        if let Some(hostname) = extract_host(str_output) {
-                            println!("{} : {}", ip, hostname);
-                        } else {
-                            println!("{}", ip);
-                        }
+    (0..=255).into_par_iter().for_each(|octet3| {
+        (0..=255).into_par_iter().for_each(|octet4| {
+            let ip = IpAddr::V4(Ipv4Addr::new(nb1, nb2, octet3, octet4));
+            let addr = format!("{}.{}.{}.{}:{}", nb1, nb2, octet3, octet4, port);
+            match TcpStream::connect(addr) {
+                Ok(_) => {
+                    match lookup_addr(&ip) {
+                        Ok(hostname) => {
+                            let res = format!("{} ({})", ip, hostname);
+                            let mut result = mutex.lock().unwrap();
+                            result.push(res);
+                        },
+                        Err(_) => {},
                     }
+                },
+                Err(_) => {},
+            }
+        })
+    });
+
+    let result = mutex.lock().unwrap();
+    println!("Port: {}", port);
+    for ip in result.iter() {
+        println!("\tIP: {}", ip);
+    }
+}
+
+pub fn ipv4(nb1: u8, nb2: u8) {
+
+    let mutex = Arc::new(Mutex::new(Vec::new()));
+  
+    (1..=255).into_par_iter().for_each(|octet4| {
+        let ip = IpAddr::V4(Ipv4Addr::new(nb1, nb2, 1, octet4));
+        match ping(ip, Some(Duration::from_millis(500)), None, None, None, None) {
+            Ok(_) => {
+                match lookup_addr(&ip) {
+                    Ok(hostname) => {
+                        let res = format!("{} ({})", ip, hostname);
+                        let mut result = mutex.lock().unwrap();
+                        result.push(res);
+                    },
+                    Err(_) => {},
                 }
-                Err(_) => {}
-            }
-        });
+            },
+            Err(_) => {},
+        }
+    });
+
+    let result = mutex.lock().unwrap();
+    for ip in result.iter() {
+        println!("IP: {}", ip);
+    }
 }
 
-fn extract_host(ping_output: &str) -> Option<&str> {
-    let hostname = ping_output
-        .lines()
-        .find_map(|line| {
-            if line.starts_with("PING") {
-                let start = line.find('(')? + 1;
-                let end = line.find(')')?;
-                Some(&line[start..end])
-            } else {
-                None
-            }
-        });
+// fn ping_attempt(ip_address: Ipv4Addr) {
 
-    hostname
-}
+//     let output = Command::new("ping")
+//     .arg("-c")
+//     .arg("1")
+//     .arg(ip_address.to_string())
+//     .output()
+//     .expect("Failed to execute command");
+
+//     let output_str = String::from_utf8_lossy(&output.stdout);
+
+//     if output_str.contains("perte 0%") { // Changer la chaîne de caractères ?
+//         println!("{} is reachable", ip_address);
+//     }
+// }
