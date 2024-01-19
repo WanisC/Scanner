@@ -1,7 +1,6 @@
 mod scan_ipv4;
 mod scan_ipv6;
 mod scan_port;
-mod full_scan;
 
 use clap::{Parser, Subcommand};
 
@@ -43,33 +42,28 @@ enum Commands {
         #[clap(long_help = "Second pair of bytes", required = true)]
         octet2: u8,
     },
-
-    // Full network scanning (incoming)
-    FullScan {},
 }
 
 fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
+        // Scan for IPv4 addresses on the network with their hostname for a specific port
         Commands::ScanPort { octet1, octet2, port } => {
             println!("Scanning with octet1={}, octet2={}, port={}", octet1, octet2, port);
             scan_port::port(*octet1, *octet2, *port);
         },
 
+        // List all IPv4 addresses on the network with their hostname
         Commands::ScanIpv4 { octet1, octet2 } => {
             println!("Scanning local network with octet1={}, octet2={}", octet1, octet2);
             scan_ipv4::ipv4(*octet1, *octet2);
         },
 
+        // List all IPv4/IPv6 addresses on the network with their hostname
         Commands::ScanIpv6 { octet1, octet2 } => {
             println!("Scanning local network with octet1={}, octet2={} for IPv6", octet1, octet2);
             scan_ipv6::ipv6(*octet1, *octet2);
-        },
-
-        Commands::FullScan {} => {
-            println!("Scanning local network");
-            full_scan::full();
         },
     }
     Ok(())
