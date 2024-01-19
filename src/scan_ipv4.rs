@@ -33,13 +33,6 @@ pub fn ipv4(nb1: u8, nb2: u8) {
     });
 
     // Let's build a string with the results
-    let string = Arc::new(Mutex::new(String::new()));
-    // By iterating over the vector of results (with parallelism)
-    output.lock().unwrap().clone()
-        .into_par_iter().for_each(|ip| {
-            let string = Arc::clone(&string);
-            let mut string = string.lock().unwrap(); 
-            *string += format!("{}\n", ip).as_str();
-        });
-    println!("{}", string.lock().unwrap());
+    let final_result = output.lock().unwrap().join("\n");
+    println!("{}", final_result);
 }

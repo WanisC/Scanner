@@ -56,13 +56,7 @@ pub fn ipv6(nb1: u8, nb2: u8) {
         }
     });
 
-    // Print the results
-    let string = Arc::new(Mutex::new(String::new()));
-    output.lock().unwrap().clone()
-        .into_par_iter().for_each(|msg| {
-            let string = Arc::clone(&string);
-            let mut string = string.lock().unwrap();
-            *string += format!("{}\n", msg).as_str();
-        });
-    println!("{}", string.lock().unwrap());
+    // Let's build a string with the results
+    let final_result = output.lock().unwrap().join("\n");
+    println!("{}", final_result);
 }
