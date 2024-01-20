@@ -16,7 +16,7 @@ The IPV4 address scanning feature naturally allows you to find (local) addresses
 
 Now the 6to4 address scan functionality (IPV4 to IPV6 transition method) has the same utility as previously described, but we've now added IPV6 address visualization.
 
-![Encoding an IPv4 address in the 6to4 prefix.](image.png)
+![Encoding an IPv4 address in the 6to4 prefix.](https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/6to4_convert_address.svg/330px-6to4_convert_address.svg.png)
 
 ### Part 3: Port
 
