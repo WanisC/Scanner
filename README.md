@@ -41,5 +41,3 @@ cargo run --release scan-port 192 168 -p 80
 
 - Current version: v2023-2024
 - Language: Rust
-
-rustup default stable
