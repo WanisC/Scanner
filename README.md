@@ -33,8 +33,8 @@ cargo run --release scan-ipv4 192 168
 make ipv6 ARGS="192 168"
 cargo run --release scan-ipv6 192 168
 
-make port ARGS="192 168 -p 80"
-cargo run --release scan-port 192 168 -p 80
+make port ARGS="127 0 0 1 -p 80"
+cargo run --release scan-port 127 0 0 1 -p 80
 ```
 
 ## Version/Language
