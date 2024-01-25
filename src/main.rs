@@ -21,8 +21,17 @@ enum Commands {
         #[clap(long_help = "Second pair of bytes", required = true)]
         octet2: u8,
 
-        #[clap(short = 'p', long_help = "Port to scan", required = true)] 
-        port: u16,       
+        #[clap(long_help = "Third pair of bytes", required = true)]
+        octet3: u8,
+
+        #[clap(long_help = "Last pair of bytes", required = true)]
+        octet4: u8,
+
+        #[clap(short = 'p', long = "port", long_help = "Port range to scan", required = true, value_delimiter = '/')] 
+        port: Vec<u16>,
+
+        #[clap(short = 't', long = "type", long_help = "Parallelism or Asynchrone", required = true)]  
+        type_scan: String,
     },
 
     // IPv4 scanning
@@ -44,14 +53,31 @@ enum Commands {
     },
 }
 
-fn main() -> std::io::Result<()> {
+#[tokio::main]
+async fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
         // Scan for IPv4 addresses on the network with their hostname for a specific port
-        Commands::ScanPort { octet1, octet2, port } => {
-            println!("Scanning with octet1={}, octet2={}, port={}", octet1, octet2, port);
-            scan_port::port(*octet1, *octet2, *port);
+        Commands::ScanPort { octet1, octet2, octet3, octet4, port, type_scan } => {
+            if type_scan.to_lowercase() == "async" {
+                println!("Scanning ports {} to {} on {}.{}.{}.{} with asynchrone", port[0], port[1], octet1, octet2, octet3, octet4);
+                scan_port::port_async(*octet1, *octet2, *octet3, *octet4, port.clone()).await;
+                return Ok(());
+            } else if type_scan.to_lowercase() == "paral" {
+                println!("Scanning ports {} to {} on {}.{}.{}.{} with parallelism", port[0], port[1], octet1, octet2, octet3, octet4);
+                scan_port::port_paral(*octet1, *octet2, *octet3, *octet4, port.clone());
+                return Ok(());
+            } else if type_scan.to_lowercase() == "both" {
+                println!("Scanning ports {} to {} on {}.{}.{}.{} with both", port[0], port[1], octet1, octet2, octet3, octet4);
+                let ip_str = format!("{}.{}.{}.{}", octet1, octet2, octet3, octet4);
+                let ip_str = ip_str.as_str();
+                scan_port::parallel_port_scan(ip_str, port.clone()).await;
+                return Ok(()); 
+            } else {
+                println!("Invalid type of scan");
+                return Ok(());
+            }
         },
 
         // List all IPv4 addresses on the network with their hostname
