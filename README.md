@@ -33,13 +33,13 @@ cargo run --release scan-ipv4 192 168
 make ipv6 ARGS="192 168"
 cargo run --release scan-ipv6 192 168
 
-make port ARGS="127 0 0 1 -p 80"
-cargo run --release scan-port 127 0 0 1 -p 80
+make port ARGS="127 0 0 1 -p 80/443 -t paral"
+make port ARGS="127 0 0 1 -p 80/443 -t async"
+make port ARGS="127 0 0 1 -p 80/443 -t both"
+cargo run --release scan-port 127 0 0 1 -p 80/443 -t paral
 ```
 
 ## Version/Language
 
 - Current version: v2023-2024
 - Language: Rust
-
-rustup default stable
