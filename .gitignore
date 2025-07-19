@@ -1,1 +1,6 @@
 /target
+
+# Log files or generated results
+logs/
+*.json
+*.log
