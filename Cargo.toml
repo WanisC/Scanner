@@ -8,5 +8,11 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.4.18", features = ["derive"] }
 dns-lookup = "2.0.4"
+futures = "0.3.31"
 ping = "0.5.1"
 rayon = "1.8.0"
+serde_json = "1.0.140"
+thread = "0.0.1"
+tokio = { version = "1.46", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+chrono = "0.4.41"
